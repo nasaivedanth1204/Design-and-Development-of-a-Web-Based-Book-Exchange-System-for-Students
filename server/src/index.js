@@ -15,6 +15,7 @@ async function main() {
   console.log(`✔ SQLite database ready: ${info.path}`);
   if (info.seeded) console.log(`  First run — created tables and inserted ${info.bookCount} sample books.`);
   else console.log(`  Loaded existing data (${info.bookCount} books).`);
+  if (info.migratedCovers) console.log(`  Updated ${info.migratedCovers} sample covers to use local image files.`);
   console.log(`  Cover uploads folder: ${UPLOADS_DIR}`);
 
   const server = createApp().listen(PORT, () => {

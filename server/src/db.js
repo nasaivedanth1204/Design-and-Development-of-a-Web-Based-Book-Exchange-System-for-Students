@@ -5,6 +5,7 @@ import initSqlJs from 'sql.js';
 import { DB_PATH } from './config.js';
 import { SCHEMA_SQL } from './schema.js';
 import { seedDatabase } from './seed.js';
+import { localCoverPath } from './seedData.js';
 
 /*
  * SQLite access layer.
@@ -18,10 +19,26 @@ import { seedDatabase } from './seed.js';
 
 const require = createRequire(import.meta.url);
 
-// PRAGMA user_version is a free integer slot in the SQLite file header.
-// We set it to 1 once the sample books are inserted, so seeding happens
-// exactly once — even if every sample book is later deleted.
-const SEEDED_VERSION = 1;
+// PRAGMA user_version is a free integer slot in the SQLite file header that
+// records which setup steps this database file has already been through:
+//   0 → brand-new file: insert the sample books (exactly once, ever)
+//   1 → created by an older version that used remote Open Library cover URLs
+//   2 → current: seeded covers point at local files in /images/books/
+// Seeding never runs again once the version is ≥ 1, even if every sample
+// book is later deleted, and user-created books are never touched.
+const DB_VERSION = 2;
+
+const OPEN_LIBRARY_COVER = /^https:\/\/covers\.openlibrary\.org\/b\/isbn\/(\d{10,13})-[SML]\.jpg/;
+
+/** v1 → v2: switch seeded Open Library URLs to the matching local cover files. */
+function migrateRemoteCoversToLocal() {
+  const rows = all("SELECT id, coverImage FROM Books WHERE coverImage LIKE 'https://covers.openlibrary.org/%'");
+  for (const row of rows) {
+    const match = OPEN_LIBRARY_COVER.exec(row.coverImage);
+    if (match) run('UPDATE Books SET coverImage = ? WHERE id = ?', [localCoverPath(match[1]), row.id]);
+  }
+  return rows.length;
+}
 
 let db = null;
 let inTransaction = false;
@@ -47,18 +64,23 @@ export async function initDatabase() {
 
   const { user_version: version } = get('PRAGMA user_version');
   let seeded = false;
-  if (version < SEEDED_VERSION) {
+  let migratedCovers = 0;
+  if (version < DB_VERSION) {
     transaction(() => {
-      seedDatabase({ run, get });
-      db.exec(`PRAGMA user_version = ${SEEDED_VERSION}`);
+      if (version === 0) {
+        seedDatabase({ run, get });
+        seeded = true;
+      } else {
+        migratedCovers = migrateRemoteCoversToLocal();
+      }
+      db.exec(`PRAGMA user_version = ${DB_VERSION}`);
     });
-    seeded = true;
   } else {
     save(); // makes sure the schema (e.g. a newly added index) is on disk
   }
 
   const { count } = get('SELECT COUNT(*) AS count FROM Books');
-  return { path: DB_PATH, created: !fileExists, seeded, bookCount: count };
+  return { path: DB_PATH, created: !fileExists, seeded, migratedCovers, bookCount: count };
 }
 
 function enableForeignKeys() {

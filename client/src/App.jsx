@@ -155,6 +155,12 @@ export default function App() {
     if (fresh && fresh.pendingRequests !== detailsBook.pendingRequests) setDetailsBook(fresh);
   }, [allBooks, detailsBook]);
 
+  // Books the current user already has a pending request for (shown on cards).
+  const requestedIds = useMemo(
+    () => new Set(outgoing.filter((request) => request.status === 'pending').map((request) => request.bookId)),
+    [outgoing],
+  );
+
   const pendingRequestFor = useMemo(() => {
     if (!detailsBook) return null;
     return outgoing.find((request) => request.bookId === detailsBook.id && request.status === 'pending') ?? null;
@@ -258,8 +264,10 @@ export default function App() {
             error={loadError}
             onRetry={loadBooks}
             onOpenBook={openBook}
+            onRequestBook={setRequestBook}
             onAddBook={openAddForm}
             currentUserId={currentUserId}
+            requestedIds={requestedIds}
           />
         )}
         {route.view === 'categories' && (

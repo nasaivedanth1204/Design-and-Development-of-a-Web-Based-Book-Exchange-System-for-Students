@@ -54,11 +54,14 @@ export function initials(name = '') {
     .join('');
 }
 
-/** Stable small hash, used to give fallback covers a consistent colour. */
+/** Stable FNV-1a hash, used to give fallback covers a consistent colour. */
 export function hashString(text = '') {
-  let hash = 0;
-  for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) | 0;
-  return Math.abs(hash);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
 }
 
 export const cx = (...classes) => classes.filter(Boolean).join(' ');

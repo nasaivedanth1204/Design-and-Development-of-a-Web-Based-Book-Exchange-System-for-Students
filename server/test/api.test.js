@@ -8,6 +8,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import initSqlJs from 'sql.js';
 
 const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMP = fs.mkdtempSync(path.join(os.tmpdir(), 'book-exchange-test-'));
@@ -68,6 +70,14 @@ test('seeds 30–50 sample books on first start', async () => {
   assert.equal(status, 200);
   assert.ok(body.length >= 30 && body.length <= 50, `got ${body.length} books`);
   assert.ok(body.every((book) => book.title && book.author));
+});
+
+test('seeded covers point at local files, never at an external service', async () => {
+  const { body } = await call('GET', '/books');
+  const covers = body.map((book) => book.coverImage).filter(Boolean);
+  assert.ok(covers.length >= 40, `expected most seed books to have a cover, got ${covers.length}`);
+  for (const cover of covers) assert.match(cover, /^\/images\/books\/\d{13}\.jpg$/);
+  assert.ok(body.some((book) => book.coverImage === null), 'some books use the drawn fallback');
 });
 
 test('search is case-insensitive, tolerates whitespace and covers several fields', async () => {
@@ -139,9 +149,29 @@ test('invalid books are rejected with field errors', async () => {
   const badYear = await call('POST', '/books', form({ title: 'X', author: 'Y', ownerId: 'priya', publicationYear: 'abc' }));
   assert.equal(badYear.status, 400);
 
+  const uploadsBefore = fs.readdirSync(path.join(TEMP, 'uploads')).length;
+
   const badFile = form({ title: 'X', author: 'Y', ownerId: 'priya' });
   badFile.append('coverFile', new Blob(['hello'], { type: 'text/plain' }), 'notes.txt');
-  assert.equal((await call('POST', '/books', badFile)).status, 400);
+  const wrongType = await call('POST', '/books', badFile);
+  assert.equal(wrongType.status, 400);
+  assert.match(wrongType.body.details.coverImage, /JPG, PNG, WEBP or GIF/);
+
+  const tooBig = form({ title: 'Big cover', author: 'Y', ownerId: 'priya' });
+  tooBig.append('coverFile', new Blob([Buffer.alloc(3 * 1024 * 1024 + 10, 1)], { type: 'image/png' }), 'big.png');
+  const oversized = await call('POST', '/books', tooBig);
+  assert.equal(oversized.status, 400);
+  assert.match(oversized.body.error, /smaller than 3 MB/);
+
+  // A valid image with an invalid form must not leave its file behind either.
+  const orphan = form({ title: '', author: 'Y', ownerId: 'priya' });
+  orphan.append('coverFile', new Blob([Buffer.from('89504e470d0a1a0a', 'hex')], { type: 'image/png' }), 'x.png');
+  assert.equal((await call('POST', '/books', orphan)).status, 400);
+
+  await new Promise((resolve) => setTimeout(resolve, 100)); // file removal is async
+  assert.equal(fs.readdirSync(path.join(TEMP, 'uploads')).length, uploadsBefore, 'no orphaned upload files');
+  const titles = (await call('GET', '/books?search=big%20cover')).body;
+  assert.equal(titles.length, 0, 'failed saves are not stored');
 });
 
 test('only the owner can edit; edits are saved', async () => {
@@ -242,4 +272,26 @@ test('unknown ids and endpoints return 404 JSON', async () => {
   assert.equal((await call('GET', '/books/abc')).status, 404);
   assert.equal((await call('GET', '/nope')).status, 404);
   assert.equal((await call('PATCH', '/requests/999999/status', { status: 'accepted', actorId: 'x' })).status, 404);
+});
+
+test('a database from the previous version gets local cover paths without losing user data', async () => {
+  await stopServer(server);
+  const dbFile = path.join(TEMP, 'test.db');
+  const SQL = await initSqlJs({ locateFile: (file) => createRequire(import.meta.url).resolve(`sql.js/dist/${file}`) });
+  const db = new SQL.Database(fs.readFileSync(dbFile));
+  // Recreate what version 1 stored: remote Open Library URLs for seeded books.
+  db.run(`UPDATE Books SET coverImage = 'https://covers.openlibrary.org/b/isbn/' || substr(coverImage, 15, 13) || '-L.jpg?default=false'
+          WHERE coverImage LIKE '/images/books/%'`);
+  db.run(`INSERT INTO Books (title, author, ownerId, ownerName, coverImage) VALUES ('Own URL', 'Me', 'kabir', 'Kabir Mehta', 'https://example.com/my-cover.jpg')`);
+  db.run('PRAGMA user_version = 1');
+  const before = db.exec('SELECT COUNT(*) FROM Books')[0].values[0][0];
+  fs.writeFileSync(dbFile, db.export());
+  db.close();
+
+  server = await startServer();
+  const { body } = await call('GET', '/books');
+  assert.equal(body.length, before, 'no books added or lost');
+  assert.ok(!body.some((book) => book.coverImage?.includes('openlibrary')), 'remote seed URLs migrated');
+  assert.equal(body.find((book) => book.title === '1984').coverImage, '/images/books/9780451524935.jpg');
+  assert.equal(body.find((book) => book.title === 'Own URL').coverImage, 'https://example.com/my-cover.jpg', 'user-supplied URL untouched');
 });

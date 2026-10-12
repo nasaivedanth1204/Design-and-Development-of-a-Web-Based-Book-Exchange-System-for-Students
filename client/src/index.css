@@ -17,6 +17,10 @@
   --color-oxblood: #8c3b32;      /* danger */
   --color-moss: #6f8a5f;         /* success */
   --color-ink-blue: #5f7a96;     /* info */
+  --color-cream: #f4ecdc;        /* catalogue cards, search input */
+  --color-cream-deep: #e6d8bc;
+  --color-sepia: #2b2017;        /* text on cream */
+  --color-sepia-soft: #6b5843;
 
   --animate-fade-in: fade-in 0.25s ease-out;
   --animate-rise: rise 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -94,21 +98,69 @@
   }
 }
 
-/* Wooden shelf plank drawn under every row of books. Grid cells have no
-   horizontal gap, so the plank segments join into one continuous shelf. */
-.shelf-cell {
-  position: relative;
-  padding: 0 0.75rem 2.25rem;
+/* ── Library photograph/illustration backdrop ─────────────────────────────
+   Local asset (client/public/images). A dark gradient keeps text readable.  */
+.library-backdrop {
+  background-color: #120e0b;
+  background-image:
+    linear-gradient(180deg, rgb(18 14 11 / 0.55) 0%, rgb(18 14 11 / 0.62) 45%, rgb(18 14 11 / 0.94) 88%, #120e0b 100%),
+    radial-gradient(ellipse 70% 80% at 30% 45%, rgb(18 14 11 / 0.55), transparent 70%),
+    url('/images/library-bg.webp');
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
 }
-.shelf-cell::after {
+.library-backdrop--banner {
+  background-image:
+    linear-gradient(180deg, rgb(18 14 11 / 0.72) 0%, rgb(18 14 11 / 0.82) 70%, #120e0b 100%),
+    url('/images/library-bg.webp');
+  background-position: center 62%;
+}
+@media (max-width: 640px) {
+  .library-backdrop {
+    background-image:
+      linear-gradient(180deg, rgb(18 14 11 / 0.6) 0%, rgb(18 14 11 / 0.7) 50%, rgb(18 14 11 / 0.95) 90%, #120e0b 100%),
+      url('/images/library-bg-mobile.webp');
+    background-position: center 30%;
+  }
+  .library-backdrop--banner {
+    background-image:
+      linear-gradient(180deg, rgb(18 14 11 / 0.75) 0%, rgb(18 14 11 / 0.85) 70%, #120e0b 100%),
+      url('/images/library-bg-mobile.webp');
+  }
+}
+
+/* Wooden ledge that the "Recently added" covers stand on. */
+.shelf-ledge {
+  position: relative;
+}
+.shelf-ledge::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0.9rem;
-  height: 0.85rem;
-  background: linear-gradient(180deg, #5a412b 0%, #3e2c1d 45%, #2a1d13 100%);
-  box-shadow: 0 10px 18px -6px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.08);
+  bottom: 0;
+  height: 0.9rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #6a4c32 0%, #4a3421 40%, #2c1f14 100%);
+  box-shadow: 0 14px 22px -8px rgb(0 0 0 / 0.8), inset 0 1px 0 rgb(255 230 190 / 0.18);
+}
+
+/* Small brass ornament used between a section's eyebrow and its title. */
+.ornament {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ornament::before,
+.ornament::after {
+  content: '';
+  height: 1px;
+  width: 1.75rem;
+  background: linear-gradient(90deg, transparent, rgb(201 164 92 / 0.7));
+}
+.ornament::after {
+  background: linear-gradient(90deg, rgb(201 164 92 / 0.7), transparent);
 }
 
 /* Spine shading and gloss on top of every book cover. */

@@ -8,7 +8,8 @@
     "dev": "node src/index.js",
     "start": "node src/index.js",
     "reset-db": "node scripts/reset-db.js",
-    "test": "node --test test/api.test.js"
+    "test": "node --test test/api.test.js test/covers.test.js",
+    "covers:download": "node scripts/download-covers.js"
   },
   "dependencies": {
     "express": "^5.3.0",

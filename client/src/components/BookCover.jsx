@@ -42,7 +42,7 @@ export default function BookCover({ src, title, author, className, compact = fal
 }
 
 function FallbackCover({ title = 'Untitled', author, compact }) {
-  const [from, to] = BINDINGS[hashString(title) % BINDINGS.length];
+  const [from, to] = BINDINGS[hashString(`${title}|${author ?? ''}`) % BINDINGS.length];
   return (
     <div
       role="img"

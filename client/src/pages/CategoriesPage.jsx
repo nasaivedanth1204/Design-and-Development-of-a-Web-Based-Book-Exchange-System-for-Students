@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Atom, BookHeart, Briefcase, Cpu, Feather, Landmark, Library, Shapes, Sigma, Sparkles, Terminal, Wrench } from 'lucide-react';
 import BookCover from '../components/BookCover.jsx';
+import PageBanner from '../components/PageBanner.jsx';
 
 const ICONS = {
   Fiction: BookHeart,
@@ -26,26 +27,27 @@ export default function CategoriesPage({ meta, allBooks, onSelectGenre }) {
   const uncategorised = allBooks.filter((book) => !book.genre).length;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
-      <p className="eyebrow">Browse the reading rooms</p>
-      <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">Categories</h1>
-      <p className="mt-3 max-w-2xl text-vellum">Pick a reading room to see every book shelved there.</p>
-
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <CategoryTile
-          name="All Books"
-          icon={Library}
-          books={allBooks}
-          onClick={() => onSelectGenre('all')}
-        />
-        {meta.genres.map((genre) => (
-          <CategoryTile key={genre} name={genre} icon={ICONS[genre] ?? Shapes} books={byGenre[genre]} onClick={() => onSelectGenre(genre)} />
-        ))}
+    <>
+      <PageBanner eyebrow="Browse the reading rooms" title="Categories">
+        Pick a reading room to see every book shelved there.
+      </PageBanner>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <CategoryTile
+            name="All Books"
+            icon={Library}
+            books={allBooks}
+            onClick={() => onSelectGenre('all')}
+          />
+          {meta.genres.map((genre) => (
+            <CategoryTile key={genre} name={genre} icon={ICONS[genre] ?? Shapes} books={byGenre[genre]} onClick={() => onSelectGenre(genre)} />
+          ))}
+        </div>
+        {uncategorised > 0 && (
+          <p className="mt-6 text-sm text-dust">{uncategorised} book{uncategorised === 1 ? ' has' : 's have'} no category yet and appear under All Books.</p>
+        )}
       </div>
-      {uncategorised > 0 && (
-        <p className="mt-6 text-sm text-dust">{uncategorised} book{uncategorised === 1 ? ' has' : 's have'} no category yet and appear under All Books.</p>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -71,7 +73,7 @@ function CategoryTile({ name, icon: Icon, books, onClick }) {
             className="absolute bottom-0 w-20"
             style={{ right: index * 26, transform: `rotate(${(index - 1) * 6}deg)`, zIndex: 3 - index }}
           >
-            <BookCover src={book.coverImage} title={book.title} compact className="aspect-[2/3] w-full" />
+            <BookCover src={book.coverImage} title={book.title} author={book.author} compact className="aspect-[2/3] w-full" />
           </div>
         ))}
       </div>

@@ -39,7 +39,12 @@ export function createApp() {
   // `npm start` serves the built React app from the same server.
   if (fs.existsSync(path.join(CLIENT_DIST, 'index.html'))) {
     app.use(express.static(CLIENT_DIST));
-    app.get('/{*path}', (req, res) => res.sendFile(path.join(CLIENT_DIST, 'index.html')));
+    app.get('/{*path}', (req, res) => {
+      // A missing file (e.g. a cover image not downloaded yet) is a real 404,
+      // so the browser shows the fallback cover instead of receiving HTML.
+      if (path.extname(req.path)) return res.status(404).json({ error: 'File not found.' });
+      return res.sendFile(path.join(CLIENT_DIST, 'index.html'));
+    });
   }
 
   // Central error handler: friendly JSON messages, never stack traces.

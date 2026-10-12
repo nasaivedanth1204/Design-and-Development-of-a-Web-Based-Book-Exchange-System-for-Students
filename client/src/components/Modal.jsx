@@ -50,6 +50,7 @@ export default function Modal({ open, onClose, title, children, size = 'md', lab
         >
           <X className="h-4 w-4" />
         </button>
+        <div className="h-[3px] shrink-0 bg-gradient-to-r from-transparent via-brass/70 to-transparent" aria-hidden />
         <div className="scrollbar-thin overflow-y-auto">{children}</div>
       </div>
     </div>

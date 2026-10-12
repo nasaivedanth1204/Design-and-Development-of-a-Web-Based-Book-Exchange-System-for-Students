@@ -1,11 +1,16 @@
 // Sample catalogue inserted the first time the server starts.
-// Covers come from the Open Library Covers API (looked up by ISBN). The
-// "?default=false" flag makes Open Library return a 404 instead of a blank
-// image when it has no cover, so the UI can switch to its built-in fallback.
+//
+// Covers are LOCAL files named by ISBN, e.g. client/public/images/books/9780451524935.jpg,
+// served by Vite (dev) or Express (npm start) at /images/books/<isbn>.jpg.
+// They are downloaded once from the Open Library Covers API with
+// `npm run covers:download` (see server/scripts/download-covers.js) — the
+// website itself never contacts an external image service. If a file is
+// missing, the UI draws its own fallback cover.
+//
 // A few books intentionally have no ISBN/cover or missing metadata to show
 // how NULL values and fallback covers are handled.
 
-const cover = (isbn) => `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
+export const localCoverPath = (isbn) => `/images/books/${isbn}.jpg`;
 
 export const SEED_BOOKS = [
   // ── Fiction ─────────────────────────────────────────────
@@ -138,4 +143,4 @@ export const SEED_REQUESTS = [
   { bookTitle: 'Atomic Habits', requester: 'sneha', requestType: 'purchase', message: null },
 ];
 
-export const coverFor = (isbn) => (isbn ? cover(isbn) : null);
+export const coverFor = (isbn) => (isbn ? localCoverPath(isbn) : null);

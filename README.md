@@ -48,6 +48,19 @@ npm install
 
 It installs everything for the root, `client/` and `server/` in one go, because the project uses npm workspaces.
 
+### Download the sample book covers (one time)
+
+```bash
+npm run covers:download
+```
+
+This fetches the real cover of each sample book (matched by ISBN) from the Open Library Covers API and saves it to `client/public/images/books/<isbn>.jpg`. You only need to do this once. After that the website shows covers from your own disk and never contacts an external image service, so the demo also works offline.
+
+- Each download is checked to be a genuine, complete image. Empty files, HTML error pages and tiny placeholder images are rejected.
+- It is safe to run again: valid files are skipped, and only missing or failed covers are retried. Use `npm run covers:download -- --force` to download everything again.
+- If some covers can't be downloaded (no internet, or Open Library has no cover for that ISBN), those books show a drawn cover with their title and author. Nothing breaks.
+- **Tip:** commit the downloaded `client/public/images/books/` folder, so anyone who clones the repository gets the covers without running this step.
+
 ## 4. Start the application
 
 ```bash
@@ -81,6 +94,7 @@ On first start the terminal shows something like:
 | `npm start`        | Builds the app, then serves the website **and** API together at http://localhost:4000. |
 | `npm test`         | Runs the automated API tests against a temporary database. Your demo data is not touched. |
 | `npm run reset-db` | Deletes the database and uploaded covers so the sample data is recreated on the next start. |
+| `npm run covers:download` | One-time download of the sample book covers into `client/public/images/books/`. |
 
 ## 5. How the database is set up automatically
 
@@ -89,7 +103,8 @@ You never create tables or run SQL by hand. When the backend starts, `server/src
 1. Opens `server/data/books.db`, or creates the file if it does not exist.
 2. Turns on foreign-key enforcement with `PRAGMA foreign_keys = ON`.
 3. Runs `CREATE TABLE IF NOT EXISTS …` for the two tables (see `server/src/schema.js`).
-4. On the **first run only**, inserts 50 sample books and 3 sample requests in one transaction, then records this in the database header (`PRAGMA user_version = 1`). Later restarts skip this step, so seed data is never duplicated, and books you added or deleted stay that way.
+4. On the **first run only**, inserts 50 sample books and 3 sample requests in one transaction, then records this in the database header (`PRAGMA user_version`). Later restarts skip this step, so seed data is never duplicated, and books you added or deleted stay that way.
+5. If the database was created by the first version of this project (when sample covers were remote Open Library URLs), it switches those seeded cover URLs to the local `/images/books/<isbn>.jpg` files once. Your own books and uploaded covers are not touched.
 
 Every successful insert, update or delete is written straight back to `books.db`. That is why your data survives page refreshes and server restarts.
 
@@ -131,7 +146,7 @@ The **"Acting as"** selector at the top right lets you switch between six mock s
 
 **Request a book**
 1. Switch "Acting as" to *Rahul Verma*.
-2. Open Aarav's new book, click **Request This Book**, pick a request type, add a message, and send it.
+2. Click **Request** on the new book's card (or open it and click **Request This Book**), pick a request type, add a message, and send it.
 3. Open the book again. It says your request is pending. Try sending a second request: the app does not allow duplicates.
 4. **Book Requests → Sent by me** shows the request as *pending*.
 
@@ -191,11 +206,13 @@ Responses use the usual status codes: `200`/`201` for success, `400` for validat
 ├── package.json            Root scripts (npm run dev / build / start / test / reset-db)
 ├── client/                 React + Vite frontend
 │   ├── vite.config.js      Dev server on :5173, proxies /api and /uploads to :4000
+│   ├── public/images/      library background + downloaded sample covers (books/)
 │   └── src/
 │       ├── App.jsx         App state, data loading, modals
 │       ├── api.js          fetch wrapper for the REST API
 │       ├── pages/          LibraryPage, CategoriesPage, RequestsPage
 │       └── components/     BookCard, BookCover (with fallback), modals, navbar…
+├── scripts/assets/         generator for the library background illustration
 └── server/                 Express backend
     ├── src/
     │   ├── index.js        Startup: initialise DB, start server, friendly errors
@@ -206,15 +223,22 @@ Responses use the usual status codes: `200`/`201` for success, `400` for validat
     │   ├── validation.js   Input validation and cleaning
     │   ├── upload.js       Multer config for cover images
     │   └── routes/         books.js, requests.js
-    ├── scripts/reset-db.js
-    ├── test/api.test.js    Automated API tests (npm test)
+    ├── scripts/
+    │   ├── reset-db.js
+    │   └── download-covers.js   one-time cover download (npm run covers:download)
+    ├── test/               Automated tests (npm test): API workflows + cover validation
     ├── data/               books.db lives here (git-ignored)
     └── uploads/            uploaded covers (git-ignored)
 ```
 
-## 11. Cover images
+## 11. Images and their sources
 
-Sample books use real covers from the **Open Library Covers API** (`covers.openlibrary.org`), matched by ISBN. If a cover can't be loaded (no internet during the demo, a missing image, or a broken URL), the app draws its own cloth-bound style cover showing the title and author, so the page never shows a broken image. A few sample books deliberately have no cover so you can see this.
+| Image | Where it lives | Source |
+| ----- | -------------- | ------ |
+| Library background | `client/public/images/library-bg.webp` (desktop, ~50 KB) and `library-bg-mobile.webp` (phones, ~30 KB) | An original illustration created for this project by `scripts/assets/generate-library-background.py` (Python + Pillow). No third-party artwork is used. You don't need Python to run the app; the generated images are committed. To use a photograph instead, replace these two files with WebP images of the same names. |
+| Sample book covers | `client/public/images/books/<isbn>.jpg` | Downloaded once by `npm run covers:download` from the [Open Library Covers API](https://openlibrary.org/dev/docs/api/covers) (Internet Archive). Matched by ISBN, and recorded in `manifest.json` in the same folder. Book covers remain the property of their publishers and are shown here for non-commercial, educational demonstration. Open Library asks API users not to bulk-download, so the script fetches each cover once, three at a time. |
+| Uploaded covers | `server/uploads/` | Added by users through the Add a Book form (Multer). SQLite stores only the relative path, e.g. `/uploads/1712345678-ab12cd.jpg`. |
+| Fallback covers | (drawn in the browser) | When a book has no cover, or an image fails to load, the app draws a cloth-bound style cover with the title and author, so the page never shows a broken image. A few sample books deliberately have no ISBN so you can see this. |
 
 ## 12. Troubleshooting
 
@@ -224,3 +248,5 @@ Sample books use real covers from the **Open Library Covers API** (`covers.openl
 | Page says "Cannot reach the server" | Make sure `npm run dev` is running and shows `API server running`. Then click **Try again**. |
 | `Could not initialise the SQLite database` | The database file is damaged. Stop the server, run `npm run reset-db`, and start again. |
 | `npm install` errors about the Node version | Install Node.js 20.19+ (22 LTS recommended). |
+| Books show drawn covers instead of real ones | Run `npm run covers:download` once (needs internet). Any cover that fails is retried the next time you run it. |
+| `covers:download` reports failures | Check your internet connection or firewall (it needs `covers.openlibrary.org`), then run it again. Books without a downloaded cover still work and show the drawn cover. |

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, Check, Inbox, Library, Loader2, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import BookCover from '../components/BookCover.jsx';
+import PageBanner from '../components/PageBanner.jsx';
 import { PreferenceBadge, RequestStatusBadge, StatusBadge } from '../components/Badges.jsx';
 import { api } from '../api.js';
 import { REQUEST_TYPE_LABELS, cx, formatDate, formatPrice } from '../utils.js';
@@ -69,52 +70,51 @@ export default function RequestsPage({ currentUser, tab, onTabChange, refreshKey
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-      <p className="eyebrow">Circulation desk</p>
-      <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">Book Requests</h1>
-      <p className="mt-3 max-w-2xl text-vellum">
+    <>
+      <PageBanner eyebrow="Circulation desk" title="Book Requests" width="max-w-5xl">
         Showing activity for <strong className="text-brass-light">{currentUser?.name}</strong>. Switch the
         “Acting as” selector at the top to see the exchange from another student’s side.
-      </p>
+      </PageBanner>
+      <div className="mx-auto max-w-5xl px-4 pt-4 pb-14 sm:px-6">
+        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto border-b border-leather/70" role="tablist">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => onTabChange(id)}
+              className={cx('-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition', tab === id ? 'border-brass text-brass-light' : 'border-transparent text-vellum hover:text-parchment')}
+            >
+              <Icon className="h-4 w-4" /> {label}
+              {counts[id] > 0 && <span className={cx('rounded-full px-1.5 text-[0.7rem] leading-5 font-semibold', id === 'listings' ? 'bg-leather text-vellum' : 'bg-oxblood text-parchment')}>{counts[id]}</span>}
+            </button>
+          ))}
+        </div>
 
-      <div className="no-scrollbar mt-8 flex gap-2 overflow-x-auto border-b border-leather/70" role="tablist">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => onTabChange(id)}
-            className={cx('-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition', tab === id ? 'border-brass text-brass-light' : 'border-transparent text-vellum hover:text-parchment')}
-          >
-            <Icon className="h-4 w-4" /> {label}
-            {counts[id] > 0 && <span className={cx('rounded-full px-1.5 text-[0.7rem] leading-5 font-semibold', id === 'listings' ? 'bg-leather text-vellum' : 'bg-oxblood text-parchment')}>{counts[id]}</span>}
-          </button>
-        ))}
+        <div className="mt-6">
+          {error ? (
+            <div className="panel flex flex-col items-center px-6 py-12 text-center">
+              <AlertCircle className="h-9 w-9 text-[#f0b7ae]" />
+              <p className="mt-3 text-vellum">{error}</p>
+              <button type="button" className="btn btn-primary mt-5" onClick={load}><RotateCcw className="h-4 w-4" /> Try again</button>
+            </div>
+          ) : loading && !data[tab].length ? (
+            <div className="flex justify-center py-16 text-dust"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : tab === 'listings' ? (
+            <Listings books={data.listings} onOpenBook={onOpenBook} onEditBook={onEditBook} onDeleteBook={onDeleteBook} onAddBook={onAddBook} />
+          ) : data[tab].length === 0 ? (
+            <Empty tab={tab} />
+          ) : (
+            <ul className="grid gap-4">
+              {data[tab].map((request) => (
+                <RequestCard key={request.id} request={request} direction={tab} busy={busyId === request.id} onChangeStatus={changeStatus} onOpenBook={onOpenBook} />
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-
-      <div className="mt-6">
-        {error ? (
-          <div className="panel flex flex-col items-center px-6 py-12 text-center">
-            <AlertCircle className="h-9 w-9 text-[#f0b7ae]" />
-            <p className="mt-3 text-vellum">{error}</p>
-            <button type="button" className="btn btn-primary mt-5" onClick={load}><RotateCcw className="h-4 w-4" /> Try again</button>
-          </div>
-        ) : loading && !data[tab].length ? (
-          <div className="flex justify-center py-16 text-dust"><Loader2 className="h-6 w-6 animate-spin" /></div>
-        ) : tab === 'listings' ? (
-          <Listings books={data.listings} onOpenBook={onOpenBook} onEditBook={onEditBook} onDeleteBook={onDeleteBook} onAddBook={onAddBook} />
-        ) : data[tab].length === 0 ? (
-          <Empty tab={tab} />
-        ) : (
-          <ul className="grid gap-4">
-            {data[tab].map((request) => (
-              <RequestCard key={request.id} request={request} direction={tab} busy={busyId === request.id} onChangeStatus={changeStatus} onOpenBook={onOpenBook} />
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -124,7 +124,7 @@ function RequestCard({ request, direction, busy, onChangeStatus, onOpenBook }) {
   return (
     <li className={cx('panel flex flex-col gap-4 p-4 sm:flex-row sm:p-5', !pending && 'opacity-80')}>
       <button type="button" onClick={() => onOpenBook(request.bookId)} className="w-16 shrink-0 self-start sm:w-20" aria-label={`Open ${request.bookTitle}`}>
-        <BookCover src={request.bookCover} title={request.bookTitle} compact className="aspect-[2/3] w-full" />
+        <BookCover src={request.bookCover} title={request.bookTitle} author={request.bookAuthor} compact className="aspect-[2/3] w-full" />
       </button>
 
       <div className="min-w-0 flex-1">

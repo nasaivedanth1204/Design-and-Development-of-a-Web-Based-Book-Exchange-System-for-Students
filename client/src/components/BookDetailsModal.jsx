@@ -1,8 +1,9 @@
 import { Clock, Pencil, Send, Trash2, UserRound } from 'lucide-react';
 import Modal from './Modal.jsx';
 import BookCover from './BookCover.jsx';
-import { PreferenceBadge, StatusBadge } from './Badges.jsx';
-import { formatDate, formatPrice, show } from '../utils.js';
+import { PREFERENCE_LABELS, formatDate, formatPrice, show } from '../utils.js';
+
+const STATUS_DOT = { available: 'bg-[#4f7a3f]', reserved: 'bg-[#b07a22]', unavailable: 'bg-[#9a3a2e]' };
 
 export default function BookDetailsModal({ book, open, onClose, currentUser, pendingRequest, onRequest, onEdit, onDelete, onViewRequests }) {
   if (!book) return null;
@@ -14,9 +15,13 @@ export default function BookDetailsModal({ book, open, onClose, currentUser, pen
     ['Published', book.publicationYear],
     ['Category', book.genre],
     ['Owner', book.ownerName],
-    ['Listed for', <PreferenceBadge key="p" preference={book.exchangePreference} />],
+    ['Listed for', PREFERENCE_LABELS[book.exchangePreference]],
     ['Price', book.exchangePreference === 'sell' ? (formatPrice(book.price) ?? 'Negotiable') : null],
-    ['Availability', <StatusBadge key="s" status={book.status} />],
+    ['Availability', (
+      <span key="s" className="inline-flex items-center gap-1.5 capitalize">
+        <span className={`h-2 w-2 rounded-full ${STATUS_DOT[book.status]}`} />{book.status}
+      </span>
+    )],
     ['Added', formatDate(book.createdAt)],
   ];
 
@@ -73,14 +78,21 @@ export default function BookDetailsModal({ book, open, onClose, currentUser, pen
             {book.description ?? <span className="text-dust italic">No description has been added for this book.</span>}
           </p>
 
-          <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-3 border-t border-leather/70 pt-5 text-sm sm:grid-cols-2">
-            {details.map(([label, value]) => (
-              <div key={label} className="flex items-baseline justify-between gap-3 border-b border-leather/40 pb-2 sm:block sm:border-0 sm:pb-0">
-                <dt className="text-[0.68rem] font-semibold tracking-[0.14em] text-dust uppercase">{label}</dt>
-                <dd className="text-right text-parchment sm:mt-0.5 sm:text-left">{show(value)}</dd>
-              </div>
-            ))}
-          </dl>
+          {/* Library catalogue card */}
+          <div className="mt-6 overflow-hidden rounded-md border border-cream-deep bg-cream text-sepia shadow-[0_8px_24px_rgb(0_0_0/0.45)]">
+            <div className="flex items-center justify-between border-b-2 border-[#b4553f]/70 px-4 pt-3 pb-2">
+              <span className="font-serif text-sm font-semibold tracking-[0.2em] uppercase">Catalogue card</span>
+              <span className="font-mono text-xs text-sepia-soft">No. {String(book.id).padStart(4, '0')}</span>
+            </div>
+            <dl className="grid grid-cols-1 px-4 pb-2 text-sm sm:grid-cols-2 sm:gap-x-6">
+              {details.map(([label, value]) => (
+                <div key={label} className="flex items-baseline justify-between gap-3 border-b border-[#2b2017]/12 py-2 last:border-b-0 sm:block">
+                  <dt className="text-[0.65rem] font-semibold tracking-[0.14em] text-sepia-soft uppercase">{label}</dt>
+                  <dd className="text-right font-medium sm:mt-0.5 sm:text-left">{show(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
           <div className="mt-7">{action}</div>
           {isOwner ? (

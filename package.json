@@ -17,6 +17,7 @@
     "build": "npm run build --workspace client",
     "start": "npm run build && npm run start --workspace server",
     "reset-db": "npm run reset-db --workspace server",
+    "covers:download": "node server/scripts/download-covers.js",
     "test": "npm run test --workspace server"
   },
   "devDependencies": {
