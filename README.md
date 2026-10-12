@@ -54,11 +54,16 @@ It installs everything for the root, `client/` and `server/` in one go, because 
 npm run covers:download
 ```
 
-This fetches the real cover of each sample book (matched by ISBN) from the Open Library Covers API and saves it to `client/public/images/books/<isbn>.jpg`. You only need to do this once. After that the website shows covers from your own disk and never contacts an external image service, so the demo also works offline.
+This fetches the real cover of each sample book (matched by ISBN) from the Open Library Covers API and saves it to `client/public/images/books/<isbn>.jpg`, plus a `manifest.json` recording where each cover came from. You only need to do this once. After that the website shows covers from your own disk and never contacts an external image service, so the demo also works offline.
+
+> **Current status of this repository:** the cover files are **not yet committed**. The environment this project was built in could not reach Open Library, because its network policy blocks the host. Until someone runs the command above and commits the result, every sample book shows its drawn cover. Everything else works normally.
+
+The command runs `node scripts/download-covers.js` in the `server` workspace. You can also run it there directly: `npm run covers:download --workspace server`.
 
 - Each download is checked to be a genuine, complete image. Empty files, HTML error pages and tiny placeholder images are rejected.
 - It is safe to run again: valid files are skipped, and only missing or failed covers are retried. Use `npm run covers:download -- --force` to download everything again.
-- If some covers can't be downloaded (no internet, or Open Library has no cover for that ISBN), those books show a drawn cover with their title and author. Nothing breaks.
+- If some covers can't be downloaded (no internet, or Open Library has no cover for that ISBN), those books show a drawn cover with their title and author. Nothing breaks. The command then exits with code 1 and prints which covers failed, so you notice.
+- You don't need to restart the server or reset the database after downloading. The API checks whether each sample book's cover file exists, so the covers appear on the next page load.
 - **Tip:** commit the downloaded `client/public/images/books/` folder, so anyone who clones the repository gets the covers without running this step.
 
 ## 4. Start the application
@@ -104,7 +109,9 @@ You never create tables or run SQL by hand. When the backend starts, `server/src
 2. Turns on foreign-key enforcement with `PRAGMA foreign_keys = ON`.
 3. Runs `CREATE TABLE IF NOT EXISTS …` for the two tables (see `server/src/schema.js`).
 4. On the **first run only**, inserts 50 sample books and 3 sample requests in one transaction, then records this in the database header (`PRAGMA user_version`). Later restarts skip this step, so seed data is never duplicated, and books you added or deleted stay that way.
-5. If the database was created by the first version of this project (when sample covers were remote Open Library URLs), it switches those seeded cover URLs to the local `/images/books/<isbn>.jpg` files once. Your own books and uploaded covers are not touched.
+5. If the database was created by the first version of this project (when sample covers were remote Open Library URLs), it switches those seeded cover URLs to the local `/images/books/<isbn>.jpg` files once, and prints `Updated 47 sample covers to use local image files.` Only URLs of the form `https://covers.openlibrary.org/b/isbn/<isbn>-…jpg` are changed. Your own books, uploaded covers and image URLs are not touched.
+
+If you'd rather start the demo from a completely fresh catalogue, stop the server and run `npm run reset-db` (see section 8).
 
 Every successful insert, update or delete is written straight back to `books.db`. That is why your data survives page refreshes and server restarts.
 
@@ -238,7 +245,7 @@ Responses use the usual status codes: `200`/`201` for success, `400` for validat
 | Library background | `client/public/images/library-bg.webp` (desktop, ~50 KB) and `library-bg-mobile.webp` (phones, ~30 KB) | An original illustration created for this project by `scripts/assets/generate-library-background.py` (Python + Pillow). No third-party artwork is used. You don't need Python to run the app; the generated images are committed. To use a photograph instead, replace these two files with WebP images of the same names. |
 | Sample book covers | `client/public/images/books/<isbn>.jpg` | Downloaded once by `npm run covers:download` from the [Open Library Covers API](https://openlibrary.org/dev/docs/api/covers) (Internet Archive). Matched by ISBN, and recorded in `manifest.json` in the same folder. Book covers remain the property of their publishers and are shown here for non-commercial, educational demonstration. Open Library asks API users not to bulk-download, so the script fetches each cover once, three at a time. |
 | Uploaded covers | `server/uploads/` | Added by users through the Add a Book form (Multer). SQLite stores only the relative path, e.g. `/uploads/1712345678-ab12cd.jpg`. |
-| Fallback covers | (drawn in the browser) | When a book has no cover, or an image fails to load, the app draws a cloth-bound style cover with the title and author, so the page never shows a broken image. A few sample books deliberately have no ISBN so you can see this. |
+| Fallback covers | (drawn in the browser) | When a book has no cover, or an image fails to load, the app draws a cloth-bound style cover with the title and author, so the page never shows a broken image. If a sample book's cover file hasn't been downloaded, the API returns its cover as `null` (the database keeps the path), so the browser draws the fallback without requesting a missing file. A few sample books deliberately have no ISBN so you can see this. |
 
 ## 12. Troubleshooting
 

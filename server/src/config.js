@@ -18,5 +18,11 @@ export const UPLOADS_DIR = process.env.UPLOADS_DIR
   ? path.resolve(process.env.UPLOADS_DIR)
   : path.join(SERVER_ROOT, 'uploads');
 
+// Downloaded sample covers (npm run covers:download), served at /images/books/<isbn>.jpg
+// by Vite in development and from client/dist by Express in production.
+export const SEED_COVERS_DIR = process.env.COVERS_DIR
+  ? path.resolve(process.env.COVERS_DIR)
+  : path.join(PROJECT_ROOT, 'client', 'public', 'images', 'books');
+
 // Built React app, served by Express when you run `npm start`.
 export const CLIENT_DIST = path.join(PROJECT_ROOT, 'client', 'dist');

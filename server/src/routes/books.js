@@ -3,6 +3,7 @@ import { all, get, run, transaction, nowIso } from '../db.js';
 import { badRequest, forbidden, notFound, parseId } from '../http.js';
 import { cleanText, validateBook, validateCoverUrl } from '../validation.js';
 import { uploadCover, publicPathFor, removeUploadedFile } from '../upload.js';
+import { presentBook } from '../covers.js';
 
 const router = Router();
 
@@ -65,19 +66,19 @@ router.get('/', (req, res) => {
   const sql = `SELECT ${BOOK_COLUMNS} FROM Books b
                ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
                ORDER BY ${orderBy}`;
-  res.json(all(sql, params));
+  res.json(all(sql, params).map(presentBook));
 });
 
 /** GET /api/books/owner/:ownerId — every book listed by one mock owner. */
 router.get('/owner/:ownerId', (req, res) => {
-  res.json(all(`SELECT ${BOOK_COLUMNS} FROM Books b WHERE b.ownerId = ? ORDER BY b.createdAt DESC, b.id DESC`, [req.params.ownerId]));
+  res.json(all(`SELECT ${BOOK_COLUMNS} FROM Books b WHERE b.ownerId = ? ORDER BY b.createdAt DESC, b.id DESC`, [req.params.ownerId]).map(presentBook));
 });
 
 /** GET /api/books/:id */
 router.get('/:id', (req, res) => {
   const book = findBook(parseId(req.params.id, 'Book'));
   if (!book) throw notFound('Book not found.');
-  res.json(book);
+  res.json(presentBook(book));
 });
 
 /**
@@ -117,7 +118,7 @@ router.post('/', uploadCover, (req, res) => {
       values.description, values.owner.id, values.owner.name, values.exchangePreference, values.price, now, now],
   );
 
-  res.status(201).json(findBook(lastInsertRowid));
+  res.status(201).json(presentBook(findBook(lastInsertRowid)));
 });
 
 /** Loads a book and checks that the acting mock user owns it. */
@@ -155,7 +156,7 @@ router.put('/:id', uploadCover, (req, res) => {
   );
 
   if (book.coverImage !== cover) removeUploadedFile(book.coverImage);
-  res.json(findBook(book.id));
+  res.json(presentBook(findBook(book.id)));
 });
 
 /** DELETE /api/books/:id?actorId=... — its requests are removed too (ON DELETE CASCADE). */

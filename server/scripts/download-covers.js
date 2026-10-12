@@ -15,12 +15,12 @@
 // this script makes at most one request per book, 3 at a time.
 import fs from 'node:fs';
 import path from 'node:path';
-import { PROJECT_ROOT } from '../src/config.js';
+import { SEED_COVERS_DIR } from '../src/config.js';
 import { SEED_BOOKS } from '../src/seedData.js';
 
-const OUT_DIR = process.env.COVERS_OUT_DIR ?? path.join(PROJECT_ROOT, 'client', 'public', 'images', 'books');
+const OUT_DIR = SEED_COVERS_DIR; // client/public/images/books (or COVERS_DIR in tests)
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
-// COVERS_OUT_DIR / COVERS_BASE_URL exist only so the downloader can be tested
+// COVERS_BASE_URL (and COVERS_DIR) exist only so the downloader can be tested
 // against a local mock server.
 const BASE_URL = process.env.COVERS_BASE_URL ?? 'https://covers.openlibrary.org';
 const FORCE = process.argv.includes('--force');
@@ -179,6 +179,8 @@ async function main() {
     console.log('fallback cover. Run "npm run covers:download" again later to retry just those.');
   }
   console.log('\nTip: commit client/public/images/books/ so everyone who clones the repo gets the covers.');
+  // Non-zero exit so scripts and CI notice when downloads failed.
+  if (count('failed')) process.exitCode = 1;
 }
 
 // Only run when executed directly (the helpers above are also used by tests).

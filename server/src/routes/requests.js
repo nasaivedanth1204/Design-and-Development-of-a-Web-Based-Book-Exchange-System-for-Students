@@ -3,6 +3,7 @@ import { all, get, run, transaction, nowIso } from '../db.js';
 import { badRequest, conflict, forbidden, notFound, parseId } from '../http.js';
 import { cleanMultiline, cleanText } from '../validation.js';
 import { REQUEST_TYPES, findOwner } from '../constants.js';
+import { presentRequest } from '../covers.js';
 
 const router = Router();
 
@@ -55,17 +56,17 @@ router.post('/', (req, res) => {
     [book.id, requester.id, requester.name, book.ownerId, book.ownerName, requestType, message, now, now],
   );
 
-  res.status(201).json(findRequest(lastInsertRowid));
+  res.status(201).json(presentRequest(findRequest(lastInsertRowid)));
 });
 
 /** GET /api/requests/incoming/:ownerId — requests for books this owner listed. */
 router.get('/incoming/:ownerId', (req, res) => {
-  res.json(all(`${REQUEST_SELECT} WHERE r.ownerId = ? ${ORDER}`, [req.params.ownerId]));
+  res.json(all(`${REQUEST_SELECT} WHERE r.ownerId = ? ${ORDER}`, [req.params.ownerId]).map(presentRequest));
 });
 
 /** GET /api/requests/outgoing/:requesterId — requests this user has sent. */
 router.get('/outgoing/:requesterId', (req, res) => {
-  res.json(all(`${REQUEST_SELECT} WHERE r.requesterId = ? ${ORDER}`, [req.params.requesterId]));
+  res.json(all(`${REQUEST_SELECT} WHERE r.requesterId = ? ${ORDER}`, [req.params.requesterId]).map(presentRequest));
 });
 
 /**
@@ -117,7 +118,7 @@ router.patch('/:id/status', (req, res) => {
     return changes;
   });
 
-  res.json({ request: findRequest(request.id), autoRejected });
+  res.json({ request: presentRequest(findRequest(request.id)), autoRejected });
 });
 
 export default router;

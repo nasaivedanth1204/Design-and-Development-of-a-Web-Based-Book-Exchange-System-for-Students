@@ -15,13 +15,23 @@ const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 const TEMP = fs.mkdtempSync(path.join(os.tmpdir(), 'book-exchange-test-'));
 const PORT = 4500 + Math.floor(Math.random() * 400);
 const BASE = `http://localhost:${PORT}/api`;
+// Pretend only two sample covers have been downloaded: Clean Code and 1984.
+const COVERS = path.join(TEMP, 'covers');
+fs.mkdirSync(COVERS);
+for (const isbn of ['9780132350884', '9780451524935']) fs.writeFileSync(path.join(COVERS, `${isbn}.jpg`), 'jpeg');
 let server;
 
 function startServer() {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['src/index.js'], {
       cwd: SERVER_DIR,
-      env: { ...process.env, PORT: String(PORT), DB_PATH: path.join(TEMP, 'test.db'), UPLOADS_DIR: path.join(TEMP, 'uploads') },
+      env: {
+        ...process.env,
+        PORT: String(PORT),
+        DB_PATH: path.join(TEMP, 'test.db'),
+        UPLOADS_DIR: path.join(TEMP, 'uploads'),
+        COVERS_DIR: COVERS,
+      },
     });
     let output = '';
     const onData = (chunk) => {
@@ -72,12 +82,34 @@ test('seeds 30–50 sample books on first start', async () => {
   assert.ok(body.every((book) => book.title && book.author));
 });
 
-test('seeded covers point at local files, never at an external service', async () => {
+test('seeded covers use local files when downloaded, otherwise the drawn fallback', async () => {
   const { body } = await call('GET', '/books');
-  const covers = body.map((book) => book.coverImage).filter(Boolean);
-  assert.ok(covers.length >= 40, `expected most seed books to have a cover, got ${covers.length}`);
-  for (const cover of covers) assert.match(cover, /^\/images\/books\/\d{13}\.jpg$/);
-  assert.ok(body.some((book) => book.coverImage === null), 'some books use the drawn fallback');
+  const byTitle = Object.fromEntries(body.map((book) => [book.title, book]));
+  assert.equal(byTitle['Clean Code'].coverImage, '/images/books/9780132350884.jpg');
+  assert.equal(byTitle['1984'].coverImage, '/images/books/9780451524935.jpg');
+  assert.equal(byTitle['The Hobbit'].coverImage, null, 'cover file not downloaded → null → drawn cover');
+  assert.ok(!body.some((book) => /^https?:/.test(book.coverImage ?? '')), 'no external cover URLs');
+
+  // Downloading a cover later makes it appear without touching the database.
+  fs.writeFileSync(path.join(COVERS, '9780547928227.jpg'), 'jpeg');
+  const hobbit = (await call('GET', '/books?search=hobbit')).body[0];
+  assert.equal(hobbit.coverImage, '/images/books/9780547928227.jpg');
+  fs.rmSync(path.join(COVERS, '9780547928227.jpg'));
+
+  // Request listings apply the same rule to the book's cover.
+  const incoming = (await call('GET', '/requests/incoming/aarav')).body;
+  assert.equal(incoming.find((r) => r.bookTitle === 'Clean Code').bookCover, '/images/books/9780132350884.jpg');
+  assert.equal(incoming.find((r) => r.bookTitle.startsWith('Sapiens')).bookCover, null);
+});
+
+test('editing a seeded book whose cover is not downloaded keeps its stored cover path', async () => {
+  const sapiens = (await call('GET', '/books?search=sapiens')).body[0];
+  assert.equal(sapiens.coverImage, null);
+  const edited = await call('PUT', `/books/${sapiens.id}`, form({ actorId: sapiens.ownerId, description: 'Updated.', coverMode: 'keep' }));
+  assert.equal(edited.status, 200);
+  fs.writeFileSync(path.join(COVERS, '9780062316097.jpg'), 'jpeg');
+  assert.equal((await call('GET', `/books/${sapiens.id}`)).body.coverImage, '/images/books/9780062316097.jpg');
+  fs.rmSync(path.join(COVERS, '9780062316097.jpg'));
 });
 
 test('search is case-insensitive, tolerates whitespace and covers several fields', async () => {

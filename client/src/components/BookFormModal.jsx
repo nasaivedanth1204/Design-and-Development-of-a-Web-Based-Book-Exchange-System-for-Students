@@ -117,7 +117,10 @@ export default function BookFormModal({ open, book, onClose, meta, currentUserId
     } else {
       data.append('ownerId', form.ownerId);
     }
-    const coverMode = form.coverMode === 'url' && !form.coverUrl.trim() ? 'none' : form.coverMode;
+    let coverMode = form.coverMode === 'url' && !form.coverUrl.trim() ? 'none' : form.coverMode;
+    // Editing a book that showed no cover and leaving it that way: keep whatever
+    // the database holds (e.g. a sample cover that has not been downloaded yet).
+    if (isEdit && coverMode === 'none' && !book.coverImage) coverMode = 'keep';
     data.append('coverMode', coverMode);
     if (coverMode === 'url') data.append('coverUrl', form.coverUrl.trim());
     if (coverMode === 'upload' && file) data.append('coverFile', file);
