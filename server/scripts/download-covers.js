@@ -162,7 +162,10 @@ async function main() {
     return { book, ...result };
   });
 
-  fs.writeFileSync(MANIFEST, `${JSON.stringify(Object.fromEntries(Object.entries(manifest).sort()), null, 2)}\n`);
+  // Records the source of every cover on disk (skipped when nothing was saved).
+  if (Object.keys(manifest).length) {
+    fs.writeFileSync(MANIFEST, `${JSON.stringify(Object.fromEntries(Object.entries(manifest).sort()), null, 2)}\n`);
+  }
 
   const count = (status) => results.filter((r) => r.status === status).length;
   console.log('\nSummary');

@@ -159,7 +159,7 @@ router.put('/:id', uploadCover, (req, res) => {
 });
 
 /** DELETE /api/books/:id?actorId=... — its requests are removed too (ON DELETE CASCADE). */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const book = loadOwnedBook(req.params.id, cleanText(req.query.actorId ?? req.body?.actorId));
 
   const removedRequests = transaction(() => {
@@ -168,7 +168,7 @@ router.delete('/:id', (req, res) => {
     return count;
   });
 
-  removeUploadedFile(book.coverImage);
+  await removeUploadedFile(book.coverImage); // respond only once the file is gone too
   res.json({ deleted: true, id: book.id, removedRequests });
 });
 

@@ -38,9 +38,13 @@ export const uploadCover = multer({
 
 export const publicPathFor = (file) => `/uploads/${file.filename}`;
 
-/** Deletes a previously uploaded cover. Ignores external URLs and missing files. */
+/**
+ * Deletes a previously uploaded cover. Ignores external URLs, seeded
+ * /images/ paths and missing files. Returns a promise that resolves once the
+ * file is gone (never rejects), so callers can wait for it when it matters.
+ */
 export function removeUploadedFile(publicPath) {
-  if (typeof publicPath !== 'string' || !publicPath.startsWith('/uploads/')) return;
+  if (typeof publicPath !== 'string' || !publicPath.startsWith('/uploads/')) return Promise.resolve();
   const filePath = path.join(UPLOADS_DIR, path.basename(publicPath));
-  fs.rm(filePath, { force: true }, () => {});
+  return fs.promises.rm(filePath, { force: true }).catch(() => {});
 }
