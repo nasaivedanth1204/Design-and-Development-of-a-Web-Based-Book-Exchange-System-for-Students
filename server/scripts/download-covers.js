@@ -214,8 +214,10 @@ async function main() {
   const results = await runPool([...byIsbn.values()], async (book) => {
     const file = path.join(OUT_DIR, `${book.isbn}.jpg`);
     if (!FORCE && isValidFile(file)) {
-      // Entries written before matchedBy existed were all matched by ISBN.
-      manifest[book.isbn] = { matchedBy: 'isbn', ...(previous[book.isbn] ?? { title: book.title, source: 'Open Library Covers API' }) };
+      // Keep existing entries untouched (entries written before matchedBy
+      // existed were all matched by ISBN).
+      const kept = previous[book.isbn] ?? { title: book.title, source: 'Open Library Covers API' };
+      manifest[book.isbn] = kept.matchedBy ? kept : { ...kept, matchedBy: 'isbn' };
       return { book, status: 'kept' };
     }
     const result = await fetchCover(book);
@@ -241,9 +243,11 @@ async function main() {
   });
 
   // Records the source of every cover on disk (skipped when nothing was saved).
-  if (Object.keys(manifest).length) {
-    fs.writeFileSync(MANIFEST, `${JSON.stringify(Object.fromEntries(Object.entries(manifest).sort()), null, 2)}\n`);
-  }
+  // Only written when something changed, so a run that downloads nothing
+  // leaves the repository untouched.
+  const manifestText = `${JSON.stringify(Object.fromEntries(Object.entries(manifest).sort()), null, 2)}\n`;
+  const previousText = fs.existsSync(MANIFEST) ? fs.readFileSync(MANIFEST, 'utf8') : '';
+  if (Object.keys(manifest).length && manifestText !== previousText) fs.writeFileSync(MANIFEST, manifestText);
 
   const count = (status) => results.filter((r) => r.status === status).length;
   console.log('\nSummary');
