@@ -63,6 +63,7 @@ This fetches the real cover of each sample book (matched by ISBN) from the Open 
 The command runs `node scripts/download-covers.js` in the `server` workspace. You can also run it there directly: `npm run covers:download --workspace server`.
 
 - Each download is checked to be a genuine, complete image. Empty files, HTML error pages and tiny placeholder images are rejected.
+- Covers are matched by ISBN. If Open Library has no cover for a book's ISBN, the script searches its catalogue for another edition with the **same title and the same author** and uses that cover instead. It never picks a book that merely has a similar title. `manifest.json` records how each cover was matched (`"matchedBy": "isbn"` or `"title+author"`, with the edition used).
 - It is safe to run again: valid files are skipped, and only missing or failed covers are retried. Use `npm run covers:download -- --force` to download everything again.
 - If some covers can't be downloaded (no internet, or Open Library has no cover for that ISBN), those books show a drawn cover with their title and author. Nothing breaks. The command then exits with code 1 and prints which covers failed, so you notice.
 - You don't need to restart the server or reset the database after downloading. The API checks whether each sample book's cover file exists, so the covers appear on the next page load.

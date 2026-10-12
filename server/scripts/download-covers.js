@@ -7,8 +7,13 @@
 // Run it ONCE (it is not part of server startup). It is safe to re-run: files
 // that already exist and are valid images are skipped. Every download is
 // checked to really be an image (not an empty file or an HTML error page)
-// before it is saved. Books with no ISBN, or whose cover Open Library does not
-// have, simply keep the app's built-in drawn fallback cover.
+// before it is saved.
+//
+// If Open Library has no cover for a book's ISBN, the script searches its
+// catalogue for another edition with the same title AND author and uses that
+// edition's cover (recorded as matchedBy "title+author" in manifest.json).
+// Books with no ISBN, or with no matching cover at all, keep the app's
+// built-in drawn fallback cover.
 //
 // Cover source: Open Library Covers API — https://openlibrary.org/dev/docs/api/covers
 // Open Library asks clients to identify themselves and not to bulk-download;
@@ -20,9 +25,10 @@ import { SEED_BOOKS } from '../src/seedData.js';
 
 const OUT_DIR = SEED_COVERS_DIR; // client/public/images/books (or COVERS_DIR in tests)
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
-// COVERS_BASE_URL (and COVERS_DIR) exist only so the downloader can be tested
+// COVERS_BASE_URL, COVERS_SEARCH_URL (and COVERS_DIR) exist only so the downloader can be tested
 // against a local mock server.
 const BASE_URL = process.env.COVERS_BASE_URL ?? 'https://covers.openlibrary.org';
+const SEARCH_URL = process.env.COVERS_SEARCH_URL ?? 'https://openlibrary.org';
 const FORCE = process.argv.includes('--force');
 
 const CONCURRENCY = 3;
@@ -79,9 +85,8 @@ const isValidFile = (file) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchCover(isbn) {
-  // default=false → Open Library answers 404 instead of a blank placeholder
-  const url = `${BASE_URL}/b/isbn/${isbn}-L.jpg?default=false`;
+/** Downloads one image URL with retries and validates it. */
+async function fetchImage(url) {
   let lastError = 'unknown error';
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
@@ -105,6 +110,76 @@ async function fetchCover(isbn) {
     }
   }
   return { status: 'failed', reason: lastError };
+}
+
+// ── Second strategy: same book, another edition ───────────────────────────
+// Some ISBNs have no cover on Open Library although other editions of the
+// same book do. Then we search the catalogue by title and author and accept a
+// result only if BOTH match strictly, so an unrelated cover is never used.
+
+const normalize = (text = '') =>
+  text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[’'`]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
+
+/** Surname of the first listed author, e.g. "David Thomas, Andrew Hunt" → "thomas". */
+const firstSurname = (author) => normalize(author.split(',')[0]).split(' ').pop();
+
+/** Picks the first catalogue result with a cover whose title and author match the book. */
+export function pickSearchMatch(docs, book) {
+  const wanted = normalize(book.title);
+  const wantedMain = normalize(book.title.split(':')[0]); // title without subtitle
+  const surname = firstSurname(book.author);
+  return docs.find((doc) => {
+    if (!doc.cover_i) return false;
+    const title = normalize(doc.title);
+    const full = normalize(`${doc.title ?? ''} ${doc.subtitle ?? ''}`);
+    const titleOk = title === wanted || full === wanted || (title === wantedMain && wantedMain.length >= 4);
+    const authorOk = (doc.author_name ?? []).some((name) => normalize(name).split(' ').includes(surname));
+    return titleOk && authorOk;
+  }) ?? null;
+}
+
+async function searchCatalogue(book) {
+  const params = new URLSearchParams({
+    title: book.title.split(':')[0],
+    author: book.author.split(',')[0],
+    fields: 'key,title,subtitle,author_name,cover_i',
+    limit: '20',
+  });
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(`${SEARCH_URL}/search.json?${params}`, {
+        headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      return Array.isArray(data.docs) ? data.docs : [];
+    } catch {
+      if (attempt < MAX_ATTEMPTS) await sleep(1000 * 2 ** (attempt - 1));
+    }
+  }
+  return null; // search unavailable
+}
+
+/** ISBN first; if Open Library has no cover for it, a strict title+author match. */
+async function fetchCover(book) {
+  const byIsbn = await fetchImage(`${BASE_URL}/b/isbn/${book.isbn}-L.jpg?default=false`);
+  if (byIsbn.status !== 'missing') return { ...byIsbn, matchedBy: 'isbn' };
+
+  const docs = await searchCatalogue(book);
+  if (docs === null) return { status: 'missing', reason: 'no cover for this ISBN; catalogue search unavailable' };
+  const match = pickSearchMatch(docs, book);
+  if (!match) return { status: 'missing', reason: 'no cover for this ISBN or any matching edition' };
+
+  const byEdition = await fetchImage(`${BASE_URL}/b/id/${match.cover_i}-L.jpg?default=false`);
+  if (byEdition.status !== 'downloaded') return byEdition;
+  return {
+    ...byEdition,
+    matchedBy: 'title+author',
+    reason: `ISBN had no cover; used matching catalogue entry ${match.key}`,
+    edition: { key: match.key, title: match.title, author: match.author_name?.[0], coverId: match.cover_i },
+  };
 }
 
 async function runPool(items, worker) {
@@ -139,10 +214,11 @@ async function main() {
   const results = await runPool([...byIsbn.values()], async (book) => {
     const file = path.join(OUT_DIR, `${book.isbn}.jpg`);
     if (!FORCE && isValidFile(file)) {
-      manifest[book.isbn] = previous[book.isbn] ?? { title: book.title, source: 'Open Library Covers API' };
+      // Entries written before matchedBy existed were all matched by ISBN.
+      manifest[book.isbn] = { matchedBy: 'isbn', ...(previous[book.isbn] ?? { title: book.title, source: 'Open Library Covers API' }) };
       return { book, status: 'kept' };
     }
-    const result = await fetchCover(book.isbn);
+    const result = await fetchCover(book);
     if (result.status === 'downloaded') {
       const temp = `${file}.part`;
       fs.writeFileSync(temp, result.buffer);
@@ -151,6 +227,8 @@ async function main() {
         title: book.title,
         author: book.author,
         source: 'Open Library Covers API',
+        matchedBy: result.matchedBy,
+        ...(result.edition ? { matchedEdition: result.edition } : {}),
         url: result.url,
         downloadedAt: new Date().toISOString(),
       };

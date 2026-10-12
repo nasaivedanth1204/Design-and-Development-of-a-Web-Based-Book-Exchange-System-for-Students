@@ -1,7 +1,7 @@
 // Unit tests for the image checks used by `npm run covers:download`.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { imageInfo, rejectReason } from '../scripts/download-covers.js';
+import { imageInfo, pickSearchMatch, rejectReason } from '../scripts/download-covers.js';
 
 function jpeg(width, height, { complete = true, padding = 2000 } = {}) {
   const sof = Buffer.from([0xff, 0xc0, 0x00, 0x11, 0x08, height >> 8, height & 255, width >> 8, width & 255, 0x03]);
@@ -31,4 +31,24 @@ test('accepts real covers and rejects everything else', () => {
   assert.match(rejectReason(Buffer.from(`<!doctype html>${' '.repeat(2000)}`)), /not a JPEG or PNG/);
   assert.match(rejectReason(jpeg(1, 1)), /placeholder/);
   assert.match(rejectReason(jpeg(300, 450, { complete: false })), /cut off/);
+});
+
+test('edition fallback only accepts a strict title + author match with a cover', () => {
+  const book = { title: 'The Innovators', author: 'Walter Isaacson' };
+  const docs = [
+    { key: '/works/W1', title: 'The Innovators', author_name: ['Someone Else'], cover_i: 1 },  // wrong author
+    { key: '/works/W2', title: 'The Innovators', author_name: ['Walter Isaacson'] },          // no cover
+    { key: '/works/W3', title: 'Steve Jobs', author_name: ['Walter Isaacson'], cover_i: 3 },  // wrong title
+    { key: '/works/W4', title: 'The innovators', subtitle: 'How a group of hackers created the digital revolution', author_name: ['Walter Isaacson'], cover_i: 4 },
+  ];
+  assert.equal(pickSearchMatch(docs, book)?.key, '/works/W4');
+  assert.equal(pickSearchMatch(docs.slice(0, 3), book), null, 'no match → null, never a wrong cover');
+
+  // Subtitles and multiple authors are handled.
+  const sapiens = { title: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari' };
+  assert.equal(pickSearchMatch([{ key: 'S', title: 'Sapiens', author_name: ['Yuval Noah Harari'], cover_i: 9 }], sapiens)?.key, 'S');
+  const pragmatic = { title: 'The Pragmatic Programmer', author: 'David Thomas, Andrew Hunt' };
+  assert.equal(pickSearchMatch([{ key: 'P', title: 'The Pragmatic Programmer', author_name: ['Andrew Hunt', 'David Thomas'], cover_i: 5 }], pragmatic)?.key, 'P');
+  // A different book that merely starts with the same words is rejected.
+  assert.equal(pickSearchMatch([{ key: 'X', title: 'The Innovators Dilemma', author_name: ['Walter Isaacson'], cover_i: 7 }], book), null);
 });
