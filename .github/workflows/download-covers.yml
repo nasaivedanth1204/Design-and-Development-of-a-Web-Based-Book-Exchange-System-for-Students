@@ -1,0 +1,67 @@
+# Downloads the sample book covers on a GitHub runner (which has normal internet
+# access) and commits them, so every clone has the covers without running
+# `npm run covers:download` locally.
+#
+# Run it from GitHub: Actions → "Download sample book covers" → Run workflow,
+# and pick the branch to update. It is safe to run again: valid covers that are
+# already committed are skipped, and only missing ones are retried.
+name: Download sample book covers
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: download-covers-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  covers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download and validate covers
+        # The script exits with 1 if any cover failed; still commit the ones
+        # that succeeded (failed books keep the drawn fallback cover).
+        run: |
+          set +e
+          npm run covers:download | tee covers.log
+          status=${PIPESTATUS[0]}
+          {
+            echo '## Cover download'
+            echo '```'
+            sed -n '/^Summary/,$p' covers.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Download script exit code: $status"
+          exit 0
+
+      - name: Check that the app still builds and tests pass
+        run: |
+          npm test
+          npm run build
+
+      - name: Commit covers
+        run: |
+          git add client/public/images/books
+          if git diff --cached --quiet; then
+            echo "No new covers to commit."
+            exit 0
+          fi
+          count=$(git diff --cached --name-only -- '*.jpg' | wc -l)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add ${count} sample book covers from Open Library" -m "Downloaded and validated by npm run covers:download (workflow run ${{ github.run_id }})."
+          git push

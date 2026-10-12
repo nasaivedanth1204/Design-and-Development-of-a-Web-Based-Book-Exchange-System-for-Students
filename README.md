@@ -58,6 +58,8 @@ This fetches the real cover of each sample book (matched by ISBN) from the Open 
 
 > **Current status of this repository:** the cover files are **not yet committed**. The environment this project was built in could not reach Open Library, because its network policy blocks the host. Until someone runs the command above and commits the result, every sample book shows its drawn cover. Everything else works normally.
 
+**Option without running anything locally:** the repository includes a GitHub Actions workflow (`.github/workflows/download-covers.yml`) that does the same thing on GitHub's servers. On GitHub, open **Actions → Download sample book covers → Run workflow**, choose the branch, and run it. It installs the project, runs `npm run covers:download`, checks that `npm test` and `npm run build` still pass, then commits the validated covers and `manifest.json` to that branch. Pull afterwards with `git pull`.
+
 The command runs `node scripts/download-covers.js` in the `server` workspace. You can also run it there directly: `npm run covers:download --workspace server`.
 
 - Each download is checked to be a genuine, complete image. Empty files, HTML error pages and tiny placeholder images are rejected.
