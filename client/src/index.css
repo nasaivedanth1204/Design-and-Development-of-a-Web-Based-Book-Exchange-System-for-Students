@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+
+/* ── Dark-academia design tokens ───────────────────────────────────────── */
+@theme {
+  --font-serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-ink: #120e0b;          /* page background */
+  --color-walnut: #1c1611;       /* panels */
+  --color-mahogany: #261d16;     /* raised panels */
+  --color-leather: #33271d;      /* borders, inputs */
+  --color-parchment: #efe6d2;    /* main text */
+  --color-vellum: #c9bb9e;       /* secondary text */
+  --color-dust: #8f8068;         /* muted text */
+  --color-brass: #c9a45c;        /* primary accent */
+  --color-brass-light: #e0c283;
+  --color-oxblood: #8c3b32;      /* danger */
+  --color-moss: #6f8a5f;         /* success */
+  --color-ink-blue: #5f7a96;     /* info */
+
+  --animate-fade-in: fade-in 0.25s ease-out;
+  --animate-rise: rise 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink font-sans text-parchment antialiased;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgb(201 164 92 / 0.10), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgb(140 59 50 / 0.08), transparent 70%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: rgb(201 164 92 / 0.35);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 2px;
+  }
+  button:not(:disabled), [role='button'] {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium
+      transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brass text-ink shadow-lg shadow-black/30 hover:bg-brass-light active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply border border-leather bg-walnut/60 text-vellum hover:border-brass/60 hover:text-parchment;
+  }
+  .btn-danger {
+    @apply border border-oxblood/60 bg-oxblood/20 text-[#f0b7ae] hover:bg-oxblood/40;
+  }
+  .btn-success {
+    @apply border border-moss/60 bg-moss/20 text-[#cfe3c2] hover:bg-moss/35;
+  }
+  .field {
+    @apply w-full rounded-lg border border-leather bg-ink/70 px-3.5 py-2.5 text-sm text-parchment
+      placeholder:text-dust/70 transition focus:border-brass/70 focus:ring-2 focus:ring-brass/20 focus:outline-none;
+  }
+  .field-error {
+    @apply border-oxblood/80 focus:border-oxblood focus:ring-oxblood/25;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-semibold tracking-[0.12em] text-vellum uppercase;
+  }
+  .panel {
+    @apply rounded-2xl border border-leather/80 bg-walnut/80 shadow-xl shadow-black/30 backdrop-blur;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold tracking-[0.25em] text-brass uppercase;
+  }
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition-all duration-200;
+  }
+}
+
+/* Wooden shelf plank drawn under every row of books. Grid cells have no
+   horizontal gap, so the plank segments join into one continuous shelf. */
+.shelf-cell {
+  position: relative;
+  padding: 0 0.75rem 2.25rem;
+}
+.shelf-cell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.9rem;
+  height: 0.85rem;
+  background: linear-gradient(180deg, #5a412b 0%, #3e2c1d 45%, #2a1d13 100%);
+  box-shadow: 0 10px 18px -6px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+/* Spine shading and gloss on top of every book cover. */
+.cover-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.45) 0%, rgb(255 255 255 / 0.12) 3%, transparent 7%, transparent 92%, rgb(0 0 0 / 0.2) 100%),
+    linear-gradient(120deg, rgb(255 255 255 / 0.08), transparent 40%);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-leather) transparent;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

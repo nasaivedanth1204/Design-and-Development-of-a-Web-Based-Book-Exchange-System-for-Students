@@ -1,0 +1,25 @@
+{
+  "name": "student-book-exchange",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Design and Development of a Web-Based Book Exchange System for Students (React + Express + SQLite)",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names api,web --prefix-colors yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "build": "npm run build --workspace client",
+    "start": "npm run build && npm run start --workspace server",
+    "reset-db": "npm run reset-db --workspace server",
+    "test": "npm run test --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}
