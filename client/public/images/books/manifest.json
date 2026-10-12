@@ -1,5 +1,6 @@
 {
   "9780060850524": {
+    "matchedBy": "isbn",
     "title": "Brave New World",
     "author": "Aldous Huxley",
     "source": "Open Library Covers API",
@@ -7,6 +8,7 @@
     "downloadedAt": "2026-10-12T13:52:57.661Z"
   },
   "9780060883287": {
+    "matchedBy": "isbn",
     "title": "One Hundred Years of Solitude",
     "author": "Gabriel García Márquez",
     "source": "Open Library Covers API",
@@ -14,6 +16,7 @@
     "downloadedAt": "2026-10-12T13:52:58.676Z"
   },
   "9780060935467": {
+    "matchedBy": "isbn",
     "title": "To Kill a Mockingbird",
     "author": "Harper Lee",
     "source": "Open Library Covers API",
@@ -21,6 +24,7 @@
     "downloadedAt": "2026-10-12T13:52:55.590Z"
   },
   "9780060958589": {
+    "matchedBy": "isbn",
     "title": "India After Gandhi",
     "author": "Ramachandra Guha",
     "source": "Open Library Covers API",
@@ -28,6 +32,7 @@
     "downloadedAt": "2026-10-12T13:53:04.813Z"
   },
   "9780062315007": {
+    "matchedBy": "isbn",
     "title": "The Alchemist",
     "author": "Paulo Coelho",
     "source": "Open Library Covers API",
@@ -35,6 +40,7 @@
     "downloadedAt": "2026-10-12T13:52:56.840Z"
   },
   "9780062316097": {
+    "matchedBy": "isbn",
     "title": "Sapiens: A Brief History of Humankind",
     "author": "Yuval Noah Harari",
     "source": "Open Library Covers API",
@@ -42,6 +48,7 @@
     "downloadedAt": "2026-10-12T13:53:04.350Z"
   },
   "9780131103627": {
+    "matchedBy": "isbn",
     "title": "The C Programming Language",
     "author": "Brian W. Kernighan, Dennis M. Ritchie",
     "source": "Open Library Covers API",
@@ -49,6 +56,7 @@
     "downloadedAt": "2026-10-12T13:53:02.767Z"
   },
   "9780132350884": {
+    "matchedBy": "isbn",
     "title": "Clean Code",
     "author": "Robert C. Martin",
     "source": "Open Library Covers API",
@@ -56,6 +64,7 @@
     "downloadedAt": "2026-10-12T13:53:02.651Z"
   },
   "9780132856201": {
+    "matchedBy": "isbn",
     "title": "Computer Networking: A Top-Down Approach",
     "author": "James F. Kurose, Keith W. Ross",
     "source": "Open Library Covers API",
@@ -63,6 +72,7 @@
     "downloadedAt": "2026-10-12T13:53:02.976Z"
   },
   "9780135957059": {
+    "matchedBy": "isbn",
     "title": "The Pragmatic Programmer",
     "author": "David Thomas, Andrew Hunt",
     "source": "Open Library Covers API",
@@ -70,6 +80,7 @@
     "downloadedAt": "2026-10-12T13:53:00.142Z"
   },
   "9780136042594": {
+    "matchedBy": "isbn",
     "title": "Artificial Intelligence: A Modern Approach",
     "author": "Stuart Russell, Peter Norvig",
     "source": "Open Library Covers API",
@@ -77,6 +88,7 @@
     "downloadedAt": "2026-10-12T13:53:03.158Z"
   },
   "9780141439518": {
+    "matchedBy": "isbn",
     "title": "Pride and Prejudice",
     "author": "Jane Austen",
     "source": "Open Library Covers API",
@@ -84,6 +96,7 @@
     "downloadedAt": "2026-10-12T13:52:57.889Z"
   },
   "9780141441146": {
+    "matchedBy": "isbn",
     "title": "Jane Eyre",
     "author": "Charlotte Brontë",
     "source": "Open Library Covers API",
@@ -91,6 +104,7 @@
     "downloadedAt": "2026-10-12T13:52:58.541Z"
   },
   "9780143031031": {
+    "matchedBy": "isbn",
     "title": "The Discovery of India",
     "author": "Jawaharlal Nehru",
     "source": "Open Library Covers API",
@@ -98,6 +112,7 @@
     "downloadedAt": "2026-10-12T13:53:04.769Z"
   },
   "9780198788607": {
+    "matchedBy": "isbn",
     "title": "The Selfish Gene",
     "author": "Richard Dawkins",
     "source": "Open Library Covers API",
@@ -105,6 +120,7 @@
     "downloadedAt": "2026-10-12T13:52:59.444Z"
   },
   "9780205309023": {
+    "matchedBy": "isbn",
     "title": "The Elements of Style",
     "author": "William Strunk Jr., E.B. White",
     "source": "Open Library Covers API",
@@ -112,6 +128,7 @@
     "downloadedAt": "2026-10-12T13:53:05.956Z"
   },
   "9780262033848": {
+    "matchedBy": "isbn",
     "title": "Introduction to Algorithms",
     "author": "Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, Clifford Stein",
     "source": "Open Library Covers API",
@@ -119,6 +136,7 @@
     "downloadedAt": "2026-10-12T13:53:02.249Z"
   },
   "9780262510875": {
+    "matchedBy": "isbn",
     "title": "Structure and Interpretation of Computer Programs",
     "author": "Harold Abelson, Gerald Jay Sussman",
     "source": "Open Library Covers API",
@@ -126,6 +144,7 @@
     "downloadedAt": "2026-10-12T13:53:02.660Z"
   },
   "9780307887894": {
+    "matchedBy": "isbn",
     "title": "The Lean Startup",
     "author": "Eric Ries",
     "source": "Open Library Covers API",
@@ -133,6 +152,7 @@
     "downloadedAt": "2026-10-12T13:53:05.216Z"
   },
   "9780316769488": {
+    "matchedBy": "isbn",
     "title": "The Catcher in the Rye",
     "author": "J.D. Salinger",
     "source": "Open Library Covers API",
@@ -140,6 +160,7 @@
     "downloadedAt": "2026-10-12T13:52:57.826Z"
   },
   "9780345539434": {
+    "matchedBy": "isbn",
     "title": "Cosmos",
     "author": "Carl Sagan",
     "source": "Open Library Covers API",
@@ -147,6 +168,7 @@
     "downloadedAt": "2026-10-12T13:52:59.402Z"
   },
   "9780374533557": {
+    "matchedBy": "isbn",
     "title": "Thinking, Fast and Slow",
     "author": "Daniel Kahneman",
     "source": "Open Library Covers API",
@@ -154,6 +176,7 @@
     "downloadedAt": "2026-10-12T13:53:05.143Z"
   },
   "9780385474542": {
+    "matchedBy": "isbn",
     "title": "Things Fall Apart",
     "author": "Chinua Achebe",
     "source": "Open Library Covers API",
@@ -161,6 +184,7 @@
     "downloadedAt": "2026-10-12T13:52:59.251Z"
   },
   "9780385493628": {
+    "matchedBy": "isbn",
     "title": "Fermat’s Enigma",
     "author": "Simon Singh",
     "source": "Open Library Covers API",
@@ -168,6 +192,7 @@
     "downloadedAt": "2026-10-12T13:53:04.031Z"
   },
   "9780393317558": {
+    "matchedBy": "isbn",
     "title": "Guns, Germs, and Steel",
     "author": "Jared Diamond",
     "source": "Open Library Covers API",
@@ -175,6 +200,7 @@
     "downloadedAt": "2026-10-12T13:53:04.533Z"
   },
   "9780441172719": {
+    "matchedBy": "isbn",
     "title": "Dune",
     "author": "Frank Herbert",
     "source": "Open Library Covers API",
@@ -182,6 +208,7 @@
     "downloadedAt": "2026-10-12T13:52:57.114Z"
   },
   "9780451524935": {
+    "matchedBy": "isbn",
     "title": "1984",
     "author": "George Orwell",
     "source": "Open Library Covers API",
@@ -189,6 +216,7 @@
     "downloadedAt": "2026-10-12T13:52:56.965Z"
   },
   "9780451529060": {
+    "matchedBy": "isbn",
     "title": "On the Origin of Species",
     "author": "Charles Darwin",
     "source": "Open Library Covers API",
@@ -196,6 +224,7 @@
     "downloadedAt": "2026-10-12T13:53:00.212Z"
   },
   "9780465026562": {
+    "matchedBy": "isbn",
     "title": "Gödel, Escher, Bach",
     "author": "Douglas R. Hofstadter",
     "source": "Open Library Covers API",
@@ -203,6 +232,7 @@
     "downloadedAt": "2026-10-12T13:53:03.575Z"
   },
   "9780465050659": {
+    "matchedBy": "isbn",
     "title": "The Design of Everyday Things",
     "author": "Don Norman",
     "source": "Open Library Covers API",
@@ -210,6 +240,7 @@
     "downloadedAt": "2026-10-12T13:53:03.342Z"
   },
   "9780547928227": {
+    "matchedBy": "isbn",
     "title": "The Hobbit",
     "author": "J.R.R. Tolkien",
     "source": "Open Library Covers API",
@@ -217,6 +248,7 @@
     "downloadedAt": "2026-10-12T13:52:56.937Z"
   },
   "9780553380163": {
+    "matchedBy": "isbn",
     "title": "A Brief History of Time",
     "author": "Stephen Hawking",
     "source": "Open Library Covers API",
@@ -224,6 +256,7 @@
     "downloadedAt": "2026-10-12T13:52:58.875Z"
   },
   "9780679734161": {
+    "matchedBy": "isbn",
     "title": "To Engineer Is Human",
     "author": "Henry Petroski",
     "source": "Open Library Covers API",
@@ -231,6 +264,7 @@
     "downloadedAt": "2026-10-12T13:53:06.240Z"
   },
   "9780679734505": {
+    "matchedBy": "isbn",
     "title": "Crime and Punishment",
     "author": "Fyodor Dostoevsky",
     "source": "Open Library Covers API",
@@ -238,6 +272,7 @@
     "downloadedAt": "2026-10-12T13:52:58.486Z"
   },
   "9780691164076": {
+    "matchedBy": "isbn",
     "title": "How to Solve It",
     "author": "George Pólya",
     "source": "Open Library Covers API",
@@ -245,6 +280,7 @@
     "downloadedAt": "2026-10-12T13:53:03.661Z"
   },
   "9780735211292": {
+    "matchedBy": "isbn",
     "title": "Atomic Habits",
     "author": "James Clear",
     "source": "Open Library Covers API",
@@ -252,6 +288,7 @@
     "downloadedAt": "2026-10-12T13:53:05.425Z"
   },
   "9780735611313": {
+    "matchedBy": "isbn",
     "title": "Code: The Hidden Language of Computer Hardware and Software",
     "author": "Charles Petzold",
     "source": "Open Library Covers API",
@@ -259,6 +296,7 @@
     "downloadedAt": "2026-10-12T13:53:03.114Z"
   },
   "9780743269513": {
+    "matchedBy": "isbn",
     "title": "The 7 Habits of Highly Effective People",
     "author": "Stephen R. Covey",
     "source": "Open Library Covers API",
@@ -266,6 +304,7 @@
     "downloadedAt": "2026-10-12T13:53:05.519Z"
   },
   "9780743273565": {
+    "matchedBy": "isbn",
     "title": "The Great Gatsby",
     "author": "F. Scott Fitzgerald",
     "source": "Open Library Covers API",
@@ -273,6 +312,7 @@
     "downloadedAt": "2026-10-12T13:52:56.646Z"
   },
   "9780804139298": {
+    "matchedBy": "isbn",
     "title": "Zero to One",
     "author": "Peter Thiel, Blake Masters",
     "source": "Open Library Covers API",
@@ -280,6 +320,7 @@
     "downloadedAt": "2026-10-12T13:53:05.041Z"
   },
   "9780812979657": {
+    "matchedBy": "isbn",
     "title": "The God of Small Things",
     "author": "Arundhati Roy",
     "source": "Open Library Covers API",
@@ -287,6 +328,7 @@
     "downloadedAt": "2026-10-12T13:52:59.551Z"
   },
   "9780914098911": {
+    "matchedBy": "isbn",
     "title": "Calculus",
     "author": "Michael Spivak",
     "source": "Open Library Covers API",
@@ -294,6 +336,7 @@
     "downloadedAt": "2026-10-12T13:53:03.936Z"
   },
   "9781449373320": {
+    "matchedBy": "isbn",
     "title": "Designing Data-Intensive Applications",
     "author": "Martin Kleppmann",
     "source": "Open Library Covers API",
@@ -301,13 +344,29 @@
     "downloadedAt": "2026-10-12T13:53:00.818Z"
   },
   "9781455586691": {
+    "matchedBy": "isbn",
     "title": "Deep Work",
     "author": "Cal Newport",
     "source": "Open Library Covers API",
     "url": "https://covers.openlibrary.org/b/isbn/9781455586691-L.jpg?default=false",
     "downloadedAt": "2026-10-12T13:53:05.580Z"
   },
+  "9781476708706": {
+    "title": "The Innovators",
+    "author": "Walter Isaacson",
+    "source": "Open Library Covers API",
+    "matchedBy": "title+author",
+    "matchedEdition": {
+      "key": "/works/OL17074268W",
+      "title": "The Innovators",
+      "author": "Walter Isaacson",
+      "coverId": 7313659
+    },
+    "url": "https://covers.openlibrary.org/b/id/7313659-L.jpg?default=false",
+    "downloadedAt": "2026-10-12T13:59:33.518Z"
+  },
   "9781476733524": {
+    "matchedBy": "isbn",
     "title": "The Gene: An Intimate History",
     "author": "Siddhartha Mukherjee",
     "source": "Open Library Covers API",
@@ -315,6 +374,7 @@
     "downloadedAt": "2026-10-12T13:52:59.966Z"
   },
   "9781593279509": {
+    "matchedBy": "isbn",
     "title": "Eloquent JavaScript",
     "author": "Marijn Haverbeke",
     "source": "Open Library Covers API",
